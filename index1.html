@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta name="theme-color" content="#1d78c1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>اختبر نفسك – الدرس الأول: التيار الكهربى وقانون أوم</title>
+<style>
+:root{
+  --paper:#ffffff; --page:#f3f7fb; --ink:#1b2634; --muted:#5b6a7b;
+  --red:#d4223a; --blue:#1d78c1; --tint:#eaf3fb; --line:#d3dde8; --grid:#dfe8f1;
+  --ok:#157a43; --okbg:#e3f5ea; --bad:#c0262d; --badbg:#fdebec; --area:rgba(29,120,193,.14);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#141a21; --page:#0d1116; --ink:#e7edf4; --muted:#9aa8b8;
+    --red:#ff6b7d; --blue:#62b2f2; --tint:#192431; --line:#2c3a49; --grid:#26323f;
+    --ok:#62d18f; --okbg:#12301f; --bad:#ff8087; --badbg:#381a1e; --area:rgba(98,178,242,.18);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141a21; --page:#0d1116; --ink:#e7edf4; --muted:#9aa8b8;
+  --red:#ff6b7d; --blue:#62b2f2; --tint:#192431; --line:#2c3a49; --grid:#26323f;
+  --ok:#62d18f; --okbg:#12301f; --bad:#ff8087; --badbg:#381a1e; --area:rgba(98,178,242,.18);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-size:17px;line-height:1.7}
+.wrap{max-width:820px;margin:0 auto;padding:0 14px 60px}
+
+/* header */
+.top{padding:26px 6px 8px}
+.top h1{margin:0;font-weight:900;font-size:clamp(26px,5.5vw,38px);line-height:1.25}
+.top h1 small{display:block;font-size:.5em;font-weight:700;color:var(--red);margin-bottom:4px}
+.top p{margin:10px 0 0;color:var(--muted);max-width:60ch}
+
+/* sticky progress */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--page);padding:8px 0 6px;margin-top:8px}
+.bar .row{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:15px}
+.bar .row span:last-child{color:var(--muted);font-weight:500}
+.track{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:4px}
+#pbar{height:100%;width:0;background:var(--blue);transition:width .25s}
+
+/* chips */
+#chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px;margin:12px 0 4px}
+#chips button{font:inherit;font-weight:700;font-size:14px;height:36px;border-radius:8px;border:1.5px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer;padding:0}
+#chips button.on{border-color:var(--blue);color:var(--blue);background:var(--tint)}
+#chips button.good{border-color:var(--ok);background:var(--okbg);color:var(--ok)}
+#chips button.bad{border-color:var(--bad);background:var(--badbg);color:var(--bad)}
+#chips button:focus-visible,.opt:has(input:focus-visible),.btn:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+
+/* result */
+#result{margin:18px 0;background:var(--paper);border:2px solid var(--blue);border-radius:16px;padding:20px 18px}
+#result[hidden]{display:none}
+#result h2{margin:0 0 12px;font-size:20px;font-weight:900}
+.score{display:grid;grid-template-columns:1fr 1fr;border-radius:12px;overflow:hidden;border:1.5px solid var(--line)}
+.score div{padding:14px 10px;text-align:center}
+.score .g{background:var(--okbg);color:var(--ok)}
+.score .b{background:var(--badbg);color:var(--bad)}
+.score strong{display:block;font-size:clamp(44px,12vw,68px);line-height:1.05;font-weight:900;font-family:"Segoe UI",Tahoma,Arial,sans-serif}
+.score span{font-weight:700;font-size:17px}
+#note{margin:12px 0 0;color:var(--muted);font-size:15px}
+#history{margin:18px 0;background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:18px}
+#history[hidden]{display:none}
+#history h2{margin:0 0 12px;font-size:20px;font-weight:900}
+.history-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:var(--page)}
+.history-num{font-weight:900;color:var(--blue);min-width:34px}
+.history-score{font-weight:900}
+.history-time{font-size:13px;color:var(--muted);direction:ltr;text-align:left}
+.history-actions{display:flex;justify-content:center;margin-top:12px}
+
+/* questions */
+.q{background:var(--paper);border-radius:14px;margin:18px 0;padding:14px 16px 16px;border:1px solid var(--line)}
+.qh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.tag{display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;font-weight:900;border-radius:999px;padding:2px 6px 2px 16px;font-size:18px;line-height:1.5}
+.tag i{font-style:normal;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#fff;color:var(--red);font-size:16px;font-family:"Times New Roman",serif}
+.qh hr{flex:1;border:0;border-top:2px solid var(--red);margin:0;opacity:.55}
+.state{font-size:14px;font-weight:700;border-radius:999px;padding:0 12px}
+.state:empty{display:none}
+.state.good{background:var(--okbg);color:var(--ok)}
+.state.bad{background:var(--badbg);color:var(--bad)}
+.state.none{background:var(--tint);color:var(--muted)}
+.qbody{display:grid;gap:12px 18px;grid-template-areas:"text" "fig" "opts"}
+.qbody.hasfig{grid-template-columns:minmax(0,1fr)}
+@media (min-width:660px){
+  .qbody.hasfig{grid-template-columns:minmax(0,1fr) 250px;grid-template-areas:"text fig" "opts fig"}
+}
+.qtext{grid-area:text;margin:0;font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-weight:500;font-size:19.5px;line-height:2}
+.cmd{color:var(--red);font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-weight:900}
+.fig{grid-area:fig;align-self:start;display:flex;justify-content:center}
+.fig svg{width:100%;max-width:250px;height:auto}
+.opts{grid-area:opts;display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;align-content:start}
+.opts.long{grid-template-columns:1fr}
+@media (max-width:420px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;cursor:pointer;min-height:48px;background:var(--paper);font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-size:18.5px;line-height:1.5}
+.opt:hover{border-color:var(--blue)}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt .lt{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid var(--blue);color:var(--blue);font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-weight:900;font-size:16px;line-height:1}
+.opt:has(input:checked){border-color:var(--blue);background:var(--tint)}
+.opt:has(input:checked) .lt{background:var(--blue);color:var(--paper)}
+.done .opt{cursor:default}
+.done .opt:hover{border-color:var(--line)}
+.opt.right{border-color:var(--ok)!important;background:var(--okbg)!important}
+.opt.right .lt{background:var(--ok)!important;border-color:var(--ok);color:var(--paper)!important}
+.opt.wrong{border-color:var(--bad)!important;background:var(--badbg)!important}
+.opt.wrong .lt{background:var(--bad)!important;border-color:var(--bad);color:var(--paper)!important}
+
+/* math */
+.m{font-family:"Times New Roman","STIX Two Text",serif;font-size:1.1em;unicode-bidi:isolate;white-space:nowrap}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .15em;line-height:1.2}
+.fr>span:first-child{border-bottom:1.3px solid currentColor;padding:0 .25em}
+.fr>span:last-child{padding:0 .25em}
+sub,sup{line-height:0}
+.r{color:var(--red);font-weight:700}
+
+/* solution */
+.sol{margin-top:14px;border-top:2px dotted var(--line);padding-top:10px;font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-size:18px}
+.sol[hidden]{display:none}
+.sol .hd{display:inline-block;background:var(--tint);color:var(--blue);font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-weight:900;border-radius:8px;padding:0 14px;margin-bottom:8px;border:1.5px solid var(--blue)}
+.given{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
+.gv{border:1.5px dashed var(--blue);border-radius:8px;padding:0 10px;background:var(--paper)}
+.gv.unk{border-color:var(--red);color:var(--red);font-weight:700}
+.step{margin:6px 0}
+.ans{margin-top:10px;font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-weight:700}
+.ans .lt{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;border:2px solid var(--ok);color:var(--ok);margin-inline:4px;font-weight:900}
+
+/* svg */
+svg .ax{stroke:var(--ink);stroke-width:1.6}
+svg .arw{fill:var(--ink)}
+svg .gr{stroke:var(--grid);stroke-width:1}
+svg .tx{fill:var(--ink);font:11.5px "Times New Roman",serif}
+svg .tx.v{font-size:14px;font-weight:700}
+svg .tl{font-size:14px;font-weight:700;font-style:italic}
+svg .tl.r{fill:var(--red)} svg .tl.b{fill:var(--blue)}
+svg .ln{stroke:var(--red);stroke-width:2.4;fill:none}
+svg .ln2{stroke:var(--blue);stroke-width:2.4;fill:none}
+svg .gd{stroke:var(--muted);stroke-width:1.2;stroke-dasharray:4 3}
+svg .pt{fill:var(--red)}
+svg .area{fill:var(--area)}
+svg .arc{stroke:var(--ink);stroke-width:1.2;fill:none}
+svg .wire{stroke:var(--ink);stroke-width:2}
+svg .bulb{fill:none;stroke:var(--ink);stroke-width:2}
+svg .fil{stroke:var(--ink);stroke-width:1.8;fill:none}
+svg .dot{fill:var(--red)}
+
+/* submit */
+.submitrow{display:flex;flex-direction:column;align-items:center;gap:8px;margin:26px 0 0}
+.btn{font:inherit;font-weight:900;font-size:19px;border:0;border-radius:14px;padding:12px 38px;background:var(--red);color:#fff;cursor:pointer}
+.btn.alt{background:var(--blue)}
+.btn:active{transform:translateY(1px)}
+.submitrow small{color:var(--muted)}
+.submitrow[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){#pbar{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1><small>الفصل الأول · الدرس الأول</small>التيار الكهربى وقانون أوم</h1>
+    <p>٣٠ سؤالًا بنفس صيغة الكتاب: اختيار من متعدد ومسائل لها اختيارات. أجب عن كل الأسئلة ثم اضغط «تسليم الإجابات» ليظهر عدد الصح والغلط مع الحل.</p>
+  </header>
+
+  <div class="bar" aria-live="polite">
+    <div class="row"><span>تمت الإجابة عن <b id="pcount">0</b> من 30</span><span>اضغط على رقم للانتقال للسؤال</span></div>
+    <div class="track"><div id="pbar"></div></div>
+  </div>
+  <nav id="chips" aria-label="أرقام الأسئلة"></nav>
+
+  <section id="result" hidden aria-live="polite">
+    <h2>نتيجتك</h2>
+    <div class="score">
+      <div class="g"><strong id="rOk">0</strong><span>إجابة صحيحة</span></div>
+      <div class="b"><strong id="rBad">0</strong><span>إجابة خاطئة</span></div>
+    </div>
+    <p id="note"></p>
+    <div class="submitrow" style="margin-top:14px"><button class="btn alt" id="again1" type="button">حاول مرة أخرى</button></div>
+  </section>
+
+  <section id="history" hidden aria-live="polite">
+    <h2>سجل المحاولات</h2>
+    <div id="historyList"></div>
+    <div class="history-actions"><button class="btn alt" id="clearHistory" type="button">مسح سجل المحاولات</button></div>
+  </section>
+
+  <main id="list"></main>
+
+  <div class="submitrow" id="submitrow">
+    <button class="btn" id="submit" type="button">تسليم الإجابات</button>
+    <small id="warn"></small>
+  </div>
+</div>
+
+<script>
+const M = s => `<bdi class="m" dir="ltr">${s}</bdi>`;
+const F = (n,d) => `<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const LET = ['أ','ب','ج','د'];
+const cmd = '<b class="cmd">اختر :</b> ';
+
+/* ---------- figures ---------- */
+function graph(o){
+  const W=o.w||250,H=o.h||200,L=46,B=H-34,PW=W-L-18,PH=B-22;
+  const fx=x=>+(L+x/o.xmax*PW).toFixed(1), fy=y=>+(B-y/o.ymax*PH).toFixed(1);
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="direction:ltr" role="img" aria-label="${o.alt}">`;
+  if(o.area) s+=`<polygon class="area" points="${o.area.map(p=>fx(p[0])+','+fy(p[1])).join(' ')}"/>`;
+  (o.xt||[]).forEach(t=>s+=`<line class="gr" x1="${fx(t)}" y1="${B}" x2="${fx(t)}" y2="${fy(o.ymax)}"/><text class="tx" x="${fx(t)}" y="${B+15}" text-anchor="middle">${t}</text>`);
+  (o.yt||[]).forEach(t=>s+=`<line class="gr" x1="${L}" y1="${fy(t)}" x2="${fx(o.xmax)}" y2="${fy(t)}"/><text class="tx" x="${L-7}" y="${fy(t)+4}" text-anchor="end">${t}</text>`);
+  s+=`<line class="ax" x1="${L}" y1="${B}" x2="${fx(o.xmax)+10}" y2="${B}"/><line class="ax" x1="${L}" y1="${B}" x2="${L}" y2="${fy(o.ymax)-10}"/>`;
+  s+=`<path class="arw" d="M${fx(o.xmax)+12} ${B} l-8 -4 v8z"/><path class="arw" d="M${L} ${fy(o.ymax)-12} l-4 8 h8z"/>`;
+  if(o.xl) s+=`<text class="tx" x="${W-4}" y="${B+30}" text-anchor="end">${o.xl}</text>`;
+  if(o.yl) s+=`<text class="tx" x="${L+8}" y="12" text-anchor="start">${o.yl}</text>`;
+  (o.pts||[]).forEach(p=>{
+    s+=`<line class="gd" x1="${fx(p[0])}" y1="${fy(p[1])}" x2="${fx(p[0])}" y2="${B}"/><line class="gd" x1="${fx(p[0])}" y1="${fy(p[1])}" x2="${L}" y2="${fy(p[1])}"/>`;
+  });
+  (o.lines||[]).forEach(l=>s+=`<polyline class="${l.c||'ln'}" points="${l.p.map(p=>fx(p[0])+','+fy(p[1])).join(' ')}"/>`);
+  (o.pts||[]).forEach(p=>s+=`<circle class="pt" cx="${fx(p[0])}" cy="${fy(p[1])}" r="3.6"/>`);
+  (o.labels||[]).forEach(l=>s+=`<text class="tl ${l.c}" x="${fx(l.x)+l.dx}" y="${fy(l.y)+l.dy}" text-anchor="middle">${l.t}</text>`);
+  s+=(o.extra||'')+'</svg>';
+  return s;
+}
+const lamp=(l,r,ab)=>`<svg viewBox="0 0 240 100" style="direction:ltr" role="img" aria-label="مصباح كهربى بين نقطتين">
+<line class="wire" x1="20" y1="60" x2="100" y2="60"/><line class="wire" x1="140" y1="60" x2="220" y2="60"/>
+<circle class="bulb" cx="120" cy="60" r="20"/><path class="fil" d="M106 74 L134 46 M106 46 L134 74"/>
+<circle class="dot" cx="20" cy="60" r="3.8"/><circle class="dot" cx="220" cy="60" r="3.8"/>
+<text class="tx v" x="20" y="38" text-anchor="middle">${l}</text><text class="tx v" x="220" y="38" text-anchor="middle">${r}</text>
+${ab?`<text class="tx v" x="20" y="88" text-anchor="middle">a</text><text class="tx v" x="220" y="88" text-anchor="middle">b</text>`:''}</svg>`;
+
+/* ---------- questions ---------- */
+const Q = [
+/*1*/ {t:cmd+`أى المواد التالية تعتبر من أشباه الموصلات ؟`,
+  r:'الجرمانيوم', w:['النحاس','الخشب','المطاط'], g:[],
+  s:[`أشباه الموصلات مواد توصيليتها الكهربية وسط بين الموصلات والعازلات، مثل السيليكون والجرمانيوم.`,`أما النحاس فمن الموصلات، والخشب والمطاط من المواد العازلة.`]},
+/*2*/ {t:cmd+`يكون اتجاه حركة الإلكترونات الحرة داخل المصدر الكهربى (البطارية) من ......`,
+  r:'القطب الموجب إلى القطب السالب', w:['القطب السالب إلى القطب الموجب','نفس اتجاه التيار الاصطلاحى','لا تتحرك الإلكترونات داخل المصدر'], g:[],
+  s:[`اتجاه حركة الإلكترونات الحرة عكس الاتجاه الاصطلاحى للتيار.`,`والتيار الاصطلاحى داخل المصدر يكون من القطب السالب إلى القطب الموجب، إذن تتحرك الإلكترونات داخله من القطب الموجب إلى القطب السالب.`]},
+/*3*/ {t:cmd+`لقياس شدة التيار المار فى مصباح وفرق الجهد بين طرفيه، يوصل الأميتر مع المصباح على ...... بينما يوصل الفولتميتر على ......`,
+  r:'التوالى ، التوازى', w:['التوازى ، التوالى','التوالى ، التوالى','التوازى ، التوازى'], g:[],
+  s:[`يوصل الأميتر فى الدائرة على التوالى مع الجزء المراد قياس شدة التيار المار فيه.`,`ويوصل الفولتميتر على التوازى بين النقطتين المراد قياس فرق الجهد بينهما.`]},
+/*4*/ {t:cmd+`موصل أومى مقاومته ${M('10 Ω')} عند فرق جهد ${M('5 V')}، فإذا ضوعف فرق الجهد بين طرفيه إلى ${M('10 V')} عند ثبوت درجة الحرارة فإن مقاومته تصبح ......`,
+  r:M('10 Ω'), w:[M('5 Ω'),M('20 Ω'),M('40 Ω')], g:['V₁ = 5 V','R₁ = 10 Ω','V₂ = 10 V','R₂ = ?'],
+  s:[M('I<sub>1</sub> = '+F('V<sub>1</sub>','R<sub>1</sub>')+' = '+F('5','10')+' = 0.5 A'),
+     M('I<sub>2</sub> = '+F('10','10')+' = 1 A')+' &nbsp;،&nbsp; '+M('R<sub>2</sub> = '+F('V<sub>2</sub>','I<sub>2</sub>')+' = '+F('10','1')+' = <b class="r">10 Ω</b>'),
+     `مقاومة الموصل لا تعتمد على فرق الجهد ولا على شدة التيار، بل على أبعاده ونوع مادته ودرجة حرارته.`]},
+/*5*/ {t:cmd+`يمر تيار شدته ${M('0.5 A')} فى موصل لمدة دقيقتين، فإن كمية الشحنة الكهربية المارة خلال مقطع من الموصل تساوى ......`,
+  r:M('60 C'), w:[M('1 C'),M('30 C'),M('240 C')], g:['I = 0.5 A','t = 2 min = 120 s','Q = ?'],
+  s:[M('Q = I t = 0.5 × 120 = <b class="r">60 C</b>')]},
+/*6*/ {t:cmd+`موصل يمر به تيار مستمر بحيث تمر كمية من الشحنة الكهربية مقدارها ${M('36 mC')} خلال مقطع منه فى زمن قدره ${M('12 s')}، فإن شدة التيار المار فى الموصل تساوى ......`,
+  r:M('3 mA'), w:[M('0.3 mA'),M('30 mA'),M('432 mA')], g:['Q = 36 mC','t = 12 s','I = ?'],
+  s:[M('I = '+F('Q','t')+' = '+F('36 × 10<sup>−3</sup>','12')+' = 3 × 10<sup>−3</sup> A = <b class="r">3 mA</b>')]},
+/*7*/ {t:cmd+`موصل معدنى شدة التيار المار فيه ${M('8 A')}، فإن عدد الإلكترونات الحرة المارة عبر مقطع منه فى زمن ${M('4 s')} يساوى ...... (علمًا بأن : ${M('e = 1.6 × 10<sup>−19</sup> C')})`,
+  r:M('2 × 10<sup>20</sup> electrons'), w:[M('5 × 10<sup>19</sup> electrons'),M('5 × 10<sup>20</sup> electrons'),M('2 × 10<sup>19</sup> electrons')], g:['I = 8 A','t = 4 s','e = 1.6 × 10<sup>−19</sup> C','N = ?'],
+  s:[M('Q = I t = 8 × 4 = 32 C'),
+     M('N = '+F('Q','e')+' = '+F('32','1.6 × 10<sup>−19</sup>')+' = <b class="r">2 × 10<sup>20</sup> electrons</b>')]},
+/*8*/ {t:cmd+`مر خلال مقطع من موصل ${M('5 × 10<sup>18</sup>')} إلكترون فى زمن قدره ${M('2 s')}، فإن شدة التيار المار فى الموصل تساوى ...... (علمًا بأن : ${M('e = 1.6 × 10<sup>−19</sup> C')})`,
+  r:M('0.4 A'), w:[M('0.2 A'),M('0.8 A'),M('1.6 A')], g:['N = 5 × 10<sup>18</sup> electrons','t = 2 s','e = 1.6 × 10<sup>−19</sup> C','I = ?'],
+  s:[M('Q = N e = 5 × 10<sup>18</sup> × 1.6 × 10<sup>−19</sup> = 0.8 C'),
+     M('I = '+F('Q','t')+' = '+F('0.8','2')+' = <b class="r">0.4 A</b>')]},
+/*9*/ {t:cmd+`الشكل البيانى المقابل يمثل العلاقة بين كمية الشحنة الكهربية (Q) المارة عبر مقطع من موصل والزمن (t)، فإن شدة التيار المار فى الموصل تساوى ......`,
+  fig:graph({alt:'رسم بيانى للعلاقة بين الشحنة والزمن خط مستقيم من نقطة الأصل',xmax:7,ymax:16,xt:[1,2,3,4,5,6],yt:[5,10,15],xl:'t (s)',yl:'Q (C)',lines:[{p:[[0,0],[6,15]]}],pts:[[2,5],[6,15]]}),
+  r:M('2.5 A'), w:[M('2 A'),M('3 A'),M('7.5 A')], g:[],
+  s:[M('I = slope = '+F('ΔQ','Δt')),
+     M('I = '+F('15 − 5','6 − 2')+' = '+F('10','4')+' = <b class="r">2.5 A</b>'),
+     `يمكن اختيار أى نقطتين على الخط المستقيم لحساب الميل.`]},
+/*10*/ {t:cmd+`الشكل البيانى المقابل يمثل العلاقة بين شدة التيار (I) المار فى موصل والزمن (t)، فإن كمية الشحنة الكهربية المارة عبر مقطع من الموصل خلال الفترة من ${M('t = 0')} إلى ${M('t = 5 s')} تساوى ......`,
+  fig:graph({alt:'رسم بيانى لشدة التيار مع الزمن يرتفع إلى 6 أمبير عند ثانيتين ثم يثبت',xmax:6,ymax:8,xt:[1,2,3,4,5],yt:[2,4,6,8],xl:'t (s)',yl:'I (A)',area:[[0,0],[2,6],[5,6],[5,0]],lines:[{p:[[0,0],[2,6],[5,6]]}],pts:[[2,6],[5,6]]}),
+  r:M('24 C'), w:[M('18 C'),M('30 C'),M('36 C')], g:[],
+  s:[`كمية الشحنة = المساحة أسفل الخط البيانى (مثلث + مستطيل).`,
+     M('Q = '+F('1','2')+' × 2 × 6 + (5 − 2) × 6 = 6 + 18 = <b class="r">24 C</b>')]},
+/*11*/ {t:cmd+`الشكل البيانى المقابل يمثل العلاقة بين كمية الشحنة الكهربية (Q) المارة عبر مقطع من كل من دائرتين كهربيتين x ، y والزمن (t)، فإن النسبة بين شدتى التيارين ${M('I<sub>x</sub> / I<sub>y</sub>')} تساوى ...... (علمًا بأن الكميتين ممثلتان على المحورين بنفس مقياس الرسم)`,
+  fig:graph({alt:'خطان مستقيمان من نقطة الأصل يصنعان زاويتين 45 و60 درجة مع محور الزمن',w:208,xmax:6,ymax:6,xl:'t (s)',yl:'Q (C)',
+    lines:[{p:[[0,0],[6,6]]},{c:'ln2',p:[[0,0],[3.4641,6]]}],
+    labels:[{x:6,y:6,t:'x',c:'r',dx:10,dy:6},{x:3.4641,y:6,t:'y',c:'b',dx:-10,dy:4}],
+    extra:`<path class="arc" d="M82 166 A36 36 0 0 0 71.5 140.5"/><path class="arc" d="M98 166 A52 52 0 0 0 72 121"/><text class="tx" x="104" y="154">45°</text><text class="tx" x="55" y="106">60°</text>`}),
+  r:M(F('1','√3')), w:[M('√3'),M(F('√3','2')),M(F('2','√3'))], g:[],
+  s:[M('I = slope = tan θ'),
+     M('I<sub>x</sub> = tan 45° = 1') + ' &nbsp;،&nbsp; ' + M('I<sub>y</sub> = tan 60° = √3'),
+     M('I<sub>x</sub> / I<sub>y</sub> = <b class="r">'+F('1','√3')+'</b>')]},
+/*12*/ {t:cmd+`إذا كان الشغل المبذول لنقل كمية من الشحنة الكهربية مقدارها ${M('4 C')} بين طرفى موصل يساوى ${M('48 J')}، فإن فرق الجهد بين طرفى الموصل يساوى ......`,
+  r:M('12 V'), w:[M('0.083 V'),M('44 V'),M('192 V')], g:['Q = 4 C','W = 48 J','V = ?'],
+  s:[M('V = '+F('W','Q')+' = '+F('48','4')+' = <b class="r">12 V</b>')]},
+/*13*/ {t:cmd+`الشكل المقابل يمثل مصباحًا كهربيًا يمر به تيار كهربى، فإن الشغل المبذول لنقل شحنة كهربية مقدارها ${M('5 C')} بين طرفى المصباح يساوى ......`,
+  fig:lamp('+12 V','−8 V',false),
+  r:M('100 J'), w:[M('20 J'),M('60 J'),M('200 J')], g:['Q = 5 C','V₁ = +12 V','V₂ = −8 V','W = ?'],
+  s:[M('V = V<sub>(أعلى)</sub> − V<sub>(أقل)</sub> = 12 − (−8) = 20 V'),
+     M('V = '+F('W','Q')+' ، W = V Q = 20 × 5 = <b class="r">100 J</b>')]},
+/*14*/ {t:cmd+`الشكل المقابل يوضح مصباحًا كهربيًا بين النقطتين a ، b حيث جهد النقطة a يساوى ${M('−3 V')} وجهد النقطة b يساوى ${M('+5 V')}، فإن الاتجاه الاصطلاحى للتيار المار فى المصباح يكون ......`,
+  fig:lamp('−3 V','+5 V',true),
+  r:'من b إلى a', w:['من a إلى b','لا يمر تيار فى المصباح','لا يمكن تحديده'], g:[],
+  s:[`الاتجاه الاصطلاحى للتيار يكون من النقطة ذات الجهد الأعلى إلى النقطة ذات الجهد الأقل.`,
+     M('V<sub>b</sub> = +5 V &gt; V<sub>a</sub> = −3 V')+` ، إذن التيار من النقطة b إلى النقطة a.`]},
+/*15*/ {t:cmd+`الأوم (Ω) هو وحدة قياس المقاومة الكهربية ويكافئ ......`,
+  r:M('V / A'), w:[M('A / V'),M('C / s'),M('J / C')], g:[],
+  s:[M('R = '+F('V','I')),`إذن الأوم يكافئ فولت / أمبير.`]},
+/*16*/ {t:cmd+`موصل فرق الجهد بين طرفيه ${M('12 V')} ويمر به تيار شدته ${M('0.4 A')}، فإن مقاومة الموصل تساوى ......`,
+  r:M('30 Ω'), w:[M('4.8 Ω'),M('12.4 Ω'),M('48 Ω')], g:['V = 12 V','I = 0.4 A','R = ?'],
+  s:[M('R = '+F('V','I')+' = '+F('12','0.4')+' = <b class="r">30 Ω</b>')]},
+/*17*/ {t:cmd+`موصل تمر خلاله شحنة كهربية مقدارها ${M('120 C')} كل دقيقتين، فإذا كان فرق الجهد بين طرفيه ${M('50 V')} فإن مقاومته تساوى ......`,
+  r:M('50 Ω'), w:[M('25 Ω'),M('100 Ω'),M('0.02 Ω')], g:['Q = 120 C','t = 2 min = 120 s','V = 50 V','R = ?'],
+  s:[M('I = '+F('Q','t')+' = '+F('120','120')+' = 1 A'),
+     M('R = '+F('V','I')+' = '+F('50','1')+' = <b class="r">50 Ω</b>')]},
+/*18*/ {t:cmd+`الشكل البيانى المقابل يمثل العلاقة بين شدة التيار (I) المار فى موصل أومى وفرق الجهد (V) بين طرفيه، فإن مقاومة الموصل تساوى ......`,
+  fig:graph({alt:'خط مستقيم من نقطة الأصل يمثل شدة التيار مع فرق الجهد ويمر بالنقطة 12 فولت و3 أمبير',xmax:16,ymax:4,xt:[4,8,12,16],yt:[1,2,3,4],xl:'V (V)',yl:'I (A)',lines:[{p:[[0,0],[16,4]]}],pts:[[12,3]]}),
+  r:M('4 Ω'), w:[M('0.25 Ω'),M('9 Ω'),M('36 Ω')], g:[],
+  s:[M('slope = '+F('ΔI','ΔV')+' = '+F('1','R')),
+     M('slope = '+F('3','12')+' = 0.25 Ω<sup>−1</sup>'),
+     M('R = '+F('1','slope')+' = <b class="r">4 Ω</b>')]},
+/*19*/ {t:cmd+`الشكل البيانى المقابل يمثل العلاقة بين شدة التيار (I) المار فى كل من موصلين A ، B وفرق الجهد (V) بين طرفى كل منهما، فإن النسبة بين مقاومتى الموصلين ${M('R<sub>A</sub> / R<sub>B</sub>')} تساوى ......`,
+  fig:graph({alt:'خطان مستقيمان A وB من نقطة الأصل يمثلان التيار مع فرق الجهد',xmax:8,ymax:8,xt:[2,4,6,8],yt:[2,4,6,8],xl:'V (V)',yl:'I (A)',
+    lines:[{p:[[0,0],[5.3333,8]]},{c:'ln2',p:[[0,0],[8,4]]}],pts:[[4,6],[8,4]],
+    labels:[{x:5.3333,y:8,t:'A',c:'r',dx:12,dy:4},{x:8,y:4,t:'B',c:'b',dx:-6,dy:-8}]}),
+  r:M(F('1','3')), w:[M(F('3','1')),M(F('2','3')),M(F('3','2'))], g:[],
+  s:[M('R = '+F('1','slope')),
+     M('slope<sub>A</sub> = '+F('6','4')+' = 1.5') + ' &nbsp;،&nbsp; ' + M('slope<sub>B</sub> = '+F('4','8')+' = 0.5'),
+     M(F('R<sub>A</sub>','R<sub>B</sub>')+' = '+F('(slope)<sub>B</sub>','(slope)<sub>A</sub>')+' = '+F('0.5','1.5')+' = <b class="r">'+F('1','3')+'</b>')]},
+/*20*/ {t:cmd+`دائرة كهربية بها بطارية مهملة المقاومة الداخلية ومقاومة متغيرة تتصل بين قطبيها. عند زيادة قيمة المقاومة المتغيرة إلى الضعف فإن شدة التيار المار فيها ...... وفرق الجهد بين طرفيها ......`,
+  r:'تقل إلى النصف ، يظل ثابتًا', w:['تزداد إلى الضعف ، يقل','تقل إلى النصف ، يقل إلى النصف','لا تتغير ، يتضاعف'], g:[],
+  s:[`البطارية مهملة المقاومة الداخلية، إذن فرق الجهد بين طرفى المقاومة المتغيرة يظل ثابتًا ويساوى القوة الدافعة للبطارية.`,
+     M('I = '+F('V','R'))+` ، فعند مضاعفة R تقل شدة التيار إلى النصف.`]},
+/*21*/ {t:cmd+`عند ارتفاع درجة حرارة موصل فلزى فإن توصيليته الكهربية ...... ومقاومته النوعية ......`,
+  r:'تقل ، تزداد', w:['تزداد ، تزداد','تزداد ، تقل','تقل ، تقل'], g:[],
+  s:[`بارتفاع درجة الحرارة تزداد سعة وسرعة اهتزاز ذرات الفلز، فيزداد معدل تصادم الإلكترونات الحرة بها.`,`فتزداد المقاومة النوعية للمادة وتقل التوصيلية الكهربية (σ = 1/ρ).`]},
+/*22*/ {t:cmd+`سلك من النحاس مقاومته النوعية ${M('1.7 × 10<sup>−8</sup> Ω.m')} وطوله ${M('100 m')} ومساحة مقطعه ${M('1.7 × 10<sup>−6</sup> m<sup>2</sup>')}، فإن مقاومة السلك تساوى ......`,
+  r:M('1 Ω'), w:[M('0.1 Ω'),M('10 Ω'),M('100 Ω')], g:['ρ<sub>e</sub> = 1.7 × 10<sup>−8</sup> Ω.m','ℓ = 100 m','A = 1.7 × 10<sup>−6</sup> m<sup>2</sup>','R = ?'],
+  s:[M('R = ρ<sub>e</sub> '+F('ℓ','A')+' = '+F('1.7 × 10<sup>−8</sup> × 100','1.7 × 10<sup>−6</sup>')+' = <b class="r">1 Ω</b>')]},
+/*23*/ {t:cmd+`سلكان من نفس المادة وعند نفس درجة الحرارة، الأول طوله ${M('ℓ')} ونصف قطره ${M('r')}، والثانى طوله ${M('2ℓ')} ونصف قطره ${M('2r')}، فإن النسبة بين مقاومتيهما ${M('R<sub>1</sub> / R<sub>2</sub>')} تساوى ......`,
+  r:M('2'), w:[M(F('1','2')),M('1'),M('8')], g:[],
+  s:[M('R = ρ<sub>e</sub> '+F('ℓ','π r<sup>2</sup>'))+` ، والمقاومة النوعية ثابتة لأن المادة واحدة.`,
+     M(F('R<sub>1</sub>','R<sub>2</sub>')+' = '+F('ℓ','r<sup>2</sup>')+' × '+F('(2r)<sup>2</sup>','2ℓ')+' = '+F('ℓ','r<sup>2</sup>')+' × '+F('4r<sup>2</sup>','2ℓ')+' = <b class="r">2</b>')]},
+/*24*/ {t:cmd+`إذا تضاعف قطر سلك مع ثبات طوله ونوع مادته ودرجة حرارته، فإن مقاومته ......`,
+  r:'تقل إلى الربع', w:['تتضاعف','تقل إلى النصف','لا تتغير'], g:[],
+  s:[M('R ∝ '+F('1','r<sup>2</sup>'))+` عند ثبات الطول ونوع المادة ودرجة الحرارة.`,
+     M('r<sub>2</sub> = 2 r<sub>1</sub>')+' ⇐ '+M('R<sub>2</sub> = '+F('R<sub>1</sub>','4')),`إذن تقل المقاومة إلى الربع.`]},
+/*25*/ {t:cmd+`إذا كانت المقاومة النوعية لمادة سلك ${M('5 × 10<sup>−7</sup> Ω.m')} فإن التوصيلية الكهربية لهذه المادة تساوى ......`,
+  r:M('2 × 10<sup>6</sup> Ω<sup>−1</sup>.m<sup>−1</sup>'), w:[M('2 × 10<sup>−6</sup> Ω<sup>−1</sup>.m<sup>−1</sup>'),M('5 × 10<sup>6</sup> Ω<sup>−1</sup>.m<sup>−1</sup>'),M('5 × 10<sup>−7</sup> Ω<sup>−1</sup>.m<sup>−1</sup>')], g:['ρ<sub>e</sub> = 5 × 10<sup>−7</sup> Ω.m','σ = ?'],
+  s:[M('σ = '+F('1','ρ<sub>e</sub>')+' = '+F('1','5 × 10<sup>−7</sup>')+' = <b class="r">2 × 10<sup>6</sup> Ω<sup>−1</sup>.m<sup>−1</sup></b>')]},
+/*26*/ {t:cmd+`سلك من مادة توصيليتها الكهربية ${M('5 × 10<sup>6</sup> Ω<sup>−1</sup>.m<sup>−1</sup>')} وطوله ${M('2 m')} ومساحة مقطعه ${M('1 mm<sup>2</sup>')}، فإن مقاومة السلك تساوى ......`,
+  r:M('0.4 Ω'), w:[M('0.04 Ω'),M('4 Ω'),M('10 Ω')], g:['σ = 5 × 10<sup>6</sup> Ω<sup>−1</sup>.m<sup>−1</sup>','ℓ = 2 m','A = 1 mm<sup>2</sup> = 10<sup>−6</sup> m<sup>2</sup>','R = ?'],
+  s:[M('σ = '+F('ℓ','R A')),
+     M('R = '+F('ℓ','σ A')+' = '+F('2','5 × 10<sup>6</sup> × 10<sup>−6</sup>')+' = '+F('2','5')+' = <b class="r">0.4 Ω</b>')]},
+/*27*/ {t:cmd+`مصباح كهربى فرق الجهد بين طرفيه ${M('220 V')} ويمر به تيار شدته ${M('0.5 A')}، فإن القدرة الكهربية المستهلكة فى المصباح تساوى ......`,
+  r:M('110 W'), w:[M('55 W'),M('440 W'),M('1100 W')], g:['V = 220 V','I = 0.5 A','P<sub>w</sub> = ?'],
+  s:[M('P<sub>w</sub> = V I = 220 × 0.5 = <b class="r">110 W</b>')]},
+/*28*/ {t:cmd+`سخان كهربى قدرته ${M('2000 W')} يعمل لمدة ${M('5 min')}، فإن الطاقة الكهربية المستهلكة فيه تساوى ......`,
+  r:M('6 × 10<sup>5</sup> J'), w:[M('1 × 10<sup>4</sup> J'),M('1.2 × 10<sup>5</sup> J'),M('6 × 10<sup>3</sup> J')], g:['P<sub>w</sub> = 2000 W','t = 5 min = 300 s','W = ?'],
+  s:[M('W = P<sub>w</sub> t = 2000 × 300 = <b class="r">6 × 10<sup>5</sup> J</b>')]},
+/*29*/ {t:cmd+`مقاومة قيمتها ${M('25 Ω')} يمر بها تيار شدته ${M('2 A')}، فإن القدرة الكهربية المستهلكة فيها والطاقة الكهربية المستهلكة عند تشغيلها لمدة دقيقة هما ......`,
+  r:M('100 W ، 6 × 10<sup>3</sup> J'), w:[M('50 W ، 3 × 10<sup>3</sup> J'),M('100 W ، 1.2 × 10<sup>4</sup> J'),M('200 W ، 1.2 × 10<sup>4</sup> J')], g:['R = 25 Ω','I = 2 A','t = 1 min = 60 s','P<sub>w</sub> = ?','W = ?'],
+  s:[M('P<sub>w</sub> = I<sup>2</sup> R = 4 × 25 = <b class="r">100 W</b>'),
+     M('W = P<sub>w</sub> t = 100 × 60 = <b class="r">6 × 10<sup>3</sup> J</b>')]},
+/*30*/ {t:cmd+`مقاومة أومية، إذا زاد فرق الجهد بين طرفيها إلى الضعف عند ثبوت درجة الحرارة، فإن القدرة الكهربية المستهلكة فيها ......`,
+  r:'تصبح أربعة أمثالها', w:['تتضاعف','تقل إلى النصف','لا تتغير'], g:[],
+  s:[M('P<sub>w</sub> = '+F('V<sup>2</sup>','R')),
+     M('P<sub>2</sub> = '+F('(2V)<sup>2</sup>','R')+' = 4 × '+F('V<sup>2</sup>','R')+' = <b class="r">4 P<sub>1</sub></b>')]}
+];
+/* موضع الإجابة الصحيحة فى كل سؤال (0 = أ ... 3 = د) موزعة بالتساوى تقريبًا */
+const T=[1,2,1,3,2,0,3,0,2,1,0,3,2,1,0,3,1,2,0,3,1,0,2,3,1,0,2,3,1,2];
+const N=Q.length;
+
+/* ---------- render ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const list=$('#list'), chips=$('#chips');
+const plain=h=>h.replace(/<[^>]*>/g,'');
+Q.forEach((q,i)=>{
+  const opts=q.w.slice(); opts.splice(T[i],0,q.r);
+  q.opts=opts;
+  const long=opts.some(o=>plain(o).length>20);
+  const given=q.g.length?`<div class="given">${q.g.map(g=>`<span class="gv${g.includes('?')?' unk':''}">${M(g)}</span>`).join('')}</div>`:'';
+  list.insertAdjacentHTML('beforeend',`
+  <section class="q" id="q${i}" aria-labelledby="h${i}">
+    <div class="qh"><span class="tag" id="h${i}">سؤال <i>${i+1}</i></span><hr><span class="state"></span></div>
+    <div class="qbody${q.fig?' hasfig':''}">
+      <p class="qtext">${q.t}</p>
+      ${q.fig?`<div class="fig">${q.fig}</div>`:''}
+      <div class="opts${long?' long':''}" role="radiogroup" aria-labelledby="h${i}">
+        ${opts.map((o,k)=>`<label class="opt"><input type="radio" name="q${i}" value="${k}"><span class="lt">${LET[k]}</span><span>${o}</span></label>`).join('')}
+      </div>
+    </div>
+    <div class="sol" hidden>
+      <span class="hd">الحل</span>
+      ${given}
+      ${q.s.map(x=>`<div class="step">${x}</div>`).join('')}
+      <div class="ans">∴ الاختيار الصحيح هو <span class="lt">${LET[T[i]]}</span></div>
+    </div>
+  </section>`);
+  chips.insertAdjacentHTML('beforeend',`<button type="button" data-i="${i}" aria-label="السؤال ${i+1}">${i+1}</button>`);
+});
+
+const chipEl=i=>chips.children[i];
+const checked=i=>document.querySelector(`input[name="q${i}"]:checked`);
+const smooth=()=>matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
+let submitted=false;
+const HISTORY_KEY='physics_exam_attempt_history_v1';
+function getHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]')}catch(e){return[]}}
+function renderHistory(){
+  const h=getHistory(), box=$('#history'), listH=$('#historyList');
+  if(!h.length){box.hidden=true;listH.innerHTML='';return}
+  box.hidden=false;
+  listH.innerHTML=h.slice().reverse().map(x=>`<div class="history-item"><span class="history-num">#${x.attempt}</span><span class="history-score">${x.correct} صح — ${x.wrong} خطأ${x.unanswered?` — ${x.unanswered} بدون إجابة`:''}</span><span class="history-time">${x.time}</span></div>`).join('');
+}
+function saveHistory(ok,bad,none){
+  const h=getHistory();
+  h.push({attempt:h.length+1,correct:ok,wrong:bad,unanswered:none,total:N,time:new Date().toLocaleString('ar-EG')});
+  try{localStorage.setItem(HISTORY_KEY,JSON.stringify(h))}catch(e){}
+  renderHistory();
+}
+function clearHistory(){try{localStorage.removeItem(HISTORY_KEY)}catch(e){}renderHistory()}
+function refresh(){
+  let n=0;
+  for(let i=0;i<N;i++){const a=!!checked(i); if(a)n++; if(!submitted) chipEl(i).classList.toggle('on',a);}
+  $('#pcount').textContent=n;
+  $('#pbar').style.width=(n/N*100)+'%';
+  $('#warn').textContent=(!submitted&&n<N)?`باقى ${N-n} سؤال بدون إجابة`:'';
+}
+list.addEventListener('change',refresh);
+chips.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  $('#q'+b.dataset.i).scrollIntoView({behavior:smooth(),block:'start'});
+});
+
+function submit(){
+  if(submitted)return; submitted=true;
+  let ok=0,bad=0,none=0;
+  for(let i=0;i<N;i++){
+    const card=$('#q'+i), a=checked(i), got=a?+a.value:-1, st=$('.state',card), ch=chipEl(i);
+    card.classList.add('done');
+    card.querySelectorAll('.opt').forEach((l,k)=>{
+      if(k===T[i]) l.classList.add('right');
+      else if(k===got) l.classList.add('wrong');
+    });
+    card.querySelectorAll('input').forEach(x=>x.disabled=true);
+    ch.classList.remove('on');
+    if(got===T[i]){ok++;st.textContent='إجابة صحيحة';st.className='state good';ch.classList.add('good');}
+    else if(got<0){bad++;none++;st.textContent='لم تُجب';st.className='state none';ch.classList.add('bad');}
+    else{bad++;st.textContent='إجابة خاطئة';st.className='state bad';ch.classList.add('bad');}
+    $('.sol',card).hidden=false;
+  }
+  saveHistory(ok,bad,none);
+  $('#rOk').textContent=ok; $('#rBad').textContent=bad;
+  $('#note').textContent=`من أصل ${N} سؤال`+(none?` — منها ${none} سؤال لم تجب عنه وحُسب ضمن الأخطاء.`:'.')+` الحل ظاهر أسفل كل سؤال، والأرقام الحمراء بالأعلى هى الأسئلة التى تحتاج مراجعة.`;
+  $('#result').hidden=false;
+  $('#submitrow').hidden=true;
+  $('#warn').textContent='';
+  $('#result').scrollIntoView({behavior:smooth(),block:'start'});
+}
+function reset(){
+  submitted=false;
+  document.querySelectorAll('input[type=radio]').forEach(x=>{x.checked=false;x.disabled=false;});
+  document.querySelectorAll('.opt').forEach(l=>l.classList.remove('right','wrong'));
+  document.querySelectorAll('.q').forEach(c=>{c.classList.remove('done');$('.sol',c).hidden=true;const s=$('.state',c);s.textContent='';s.className='state';});
+  for(let i=0;i<N;i++) chipEl(i).className='';
+  $('#result').hidden=true; $('#submitrow').hidden=false;
+  refresh();
+  window.scrollTo({top:0,behavior:smooth()});
+}
+$('#submit').addEventListener('click',submit);
+$('#again1').addEventListener('click',reset);
+$('#clearHistory').addEventListener('click',()=>{if(confirm('هل تريد مسح سجل جميع المحاولات على هذا الجهاز؟'))clearHistory()});
+renderHistory();
+refresh();
+</script>
+</body>
+</html>
